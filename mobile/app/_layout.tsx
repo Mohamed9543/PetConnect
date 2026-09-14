@@ -9,6 +9,7 @@ import "react-native-reanimated";
 import "../global.css";
 
 import { ActionSheetHost, ToastHost } from "../src/components/ui";
+import { ErrorBoundary } from "../src/components/ErrorBoundary";
 import { useAuthStore } from "../src/store/authStore";
 import { useFavoritesStore } from "../src/store/favoritesStore";
 import { darkColors, lightColors } from "../src/constants/theme";
@@ -112,6 +113,7 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <View style={activeVars} className="flex-1 bg-background">
+        <ErrorBoundary>
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name="index" />
           <Stack.Screen name="onboarding" />
@@ -141,6 +143,7 @@ export default function RootLayout() {
           <Stack.Screen name="edit-profile" options={screenOptions.editProfile} />
           <Stack.Screen name="+not-found" />
         </Stack>
+        </ErrorBoundary>
         <ToastHost />
         <ActionSheetHost />
       </View>
