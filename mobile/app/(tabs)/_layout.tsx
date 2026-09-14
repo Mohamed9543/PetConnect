@@ -1,6 +1,7 @@
 import { Tabs, router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { shadow } from "../../src/constants/theme";
 import { useThemeColors } from "../../src/store/themeStore";
 import { useTranslation } from "../../src/i18n";
@@ -21,6 +22,7 @@ function TabIcon({ focused, active, inactive }: { focused: boolean; active: Icon
 export default function TabsLayout() {
   const colors = useThemeColors();
   const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
 
   return (
     <Tabs
@@ -31,9 +33,9 @@ export default function TabsLayout() {
         tabBarShowLabel: true,
         tabBarLabelStyle: { fontSize: 11, fontWeight: "600", marginTop: -2 },
         tabBarStyle: {
-          height: 60,
+          height: 60 + insets.bottom,
           paddingTop: 6,
-          paddingBottom: 8,
+          paddingBottom: 8 + insets.bottom,
           borderTopColor: colors.border,
           borderTopWidth: 1,
           backgroundColor: colors.surface,

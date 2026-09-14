@@ -1,12 +1,10 @@
 import { useRef, useState } from "react";
-import { Dimensions, FlatList, Pressable, Text, View } from "react-native";
+import { FlatList, Pressable, Text, View, useWindowDimensions } from "react-native";
 import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Button } from "../src/components/ui";
 import { useThemeColors } from "../src/store/themeStore";
 import { useTranslation } from "../src/i18n";
-
-const { width } = Dimensions.get("window");
 
 function useSlides() {
   const { t } = useTranslation();
@@ -32,6 +30,7 @@ function useSlides() {
 export default function Onboarding() {
   const colors = useThemeColors();
   const { t } = useTranslation();
+  const { width } = useWindowDimensions();
   const slides = useSlides();
   const [index, setIndex] = useState(0);
   const listRef = useRef<FlatList>(null);

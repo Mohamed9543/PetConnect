@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Platform, Pressable, Text, View } from "react-native";
 // Web uses map.web.tsx (Leaflet-based) instead — react-native-maps has no web implementation.
 import MapView, { Marker } from "react-native-maps";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { api } from "../src/api/client";
 import { shadow } from "../src/constants/theme";
@@ -22,6 +23,7 @@ function useLayers(): { key: Layer; emoji: string; label: string }[] {
 
 export default function MapScreen() {
   const colors = useThemeColors();
+  const insets = useSafeAreaInsets();
   const layers = useLayers();
   const [layer, setLayer] = useState<Layer>("adoption");
   const [animals, setAnimals] = useState<Animal[]>([]);
@@ -73,8 +75,8 @@ export default function MapScreen() {
       </MapView>
 
       <View
-        className="absolute bottom-6 left-4 right-4 bg-surface rounded-lg flex-row justify-around py-3"
-        style={shadow.md}
+        className="absolute left-4 right-4 bg-surface rounded-lg flex-row justify-around py-3"
+        style={{ bottom: insets.bottom + 24, ...shadow.md }}
       >
         {layers.map((item) => (
           <Pressable
