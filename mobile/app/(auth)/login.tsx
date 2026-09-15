@@ -27,10 +27,22 @@ export default function Login() {
   const showToast = useToastStore((state) => state.show);
   const [googleLoading, setGoogleLoading] = useState(false);
 
+  // expo-auth-session's Google provider throws synchronously if the client
+  // id for the current platform is missing, so a per-platform fallback
+  // placeholder is passed to avoid crashing when it hasn't been configured
+  // yet — the button is hidden below instead so users never hit it.
+  const hasGoogleClientId = Boolean(
+    Platform.OS === "android"
+      ? process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID
+      : Platform.OS === "ios"
+        ? process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID
+        : process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID
+  );
+
   const [googleRequest, googleResponse, promptGoogleAsync] = Google.useIdTokenAuthRequest({
-    webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
-    iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
-    androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
+    webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID || "unconfigured",
+    iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID || "unconfigured",
+    androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID || "unconfigured",
   });
 
   useEffect(() => {
@@ -104,20 +116,24 @@ export default function Login() {
 
           <Button title={t("auth.login")} onPress={onSubmit} loading={isLoading} />
 
-          <View className="flex-row items-center my-8">
-            <View className="flex-1 h-px bg-border" />
-            <Text className="mx-3 text-ink-muted text-[13px]">{t("auth.or")}</Text>
-            <View className="flex-1 h-px bg-border" />
-          </View>
+          {hasGoogleClientId && (
+            <>
+              <View className="flex-row items-center my-8">
+                <View className="flex-1 h-px bg-border" />
+                <Text className="mx-3 text-ink-muted text-[13px]">{t("auth.or")}</Text>
+                <View className="flex-1 h-px bg-border" />
+              </View>
 
-          <Button
-            title={t("auth.continueWithGoogle")}
-            variant="outline"
-            icon="logo-google"
-            loading={googleLoading}
-            disabled={!googleRequest}
-            onPress={() => promptGoogleAsync()}
-          />
+              <Button
+                title={t("auth.continueWithGoogle")}
+                variant="outline"
+                icon="logo-google"
+                loading={googleLoading}
+                disabled={!googleRequest}
+                onPress={() => promptGoogleAsync()}
+              />
+            </>
+          )}
 
           <View className="flex-row justify-center mt-8">
             <Text className="text-ink-secondary">{t("auth.noAccount")} </Text>
