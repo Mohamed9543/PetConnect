@@ -15,7 +15,7 @@
       "package": "com.mohamed9543.petconnect",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#E8F3E9"
       },
       "permissions": [
         "android.permission.ACCESS_COARSE_LOCATION",

@@ -1,3 +1,5 @@
+import { Ionicons } from "@expo/vector-icons";
+import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
@@ -41,6 +43,8 @@ function useHeaderScreenOptions() {
 }
 
 export default function RootLayout() {
+  const [iconsLoaded] = useFonts(Ionicons.font);
+
   const isAuthReady = useAuthStore((state) => state.isReady);
   const restoreAuth = useAuthStore((state) => state.restore);
   const user = useAuthStore((state) => state.user);
@@ -62,8 +66,8 @@ export default function RootLayout() {
   }, [restoreAuth, restoreTheme, restoreLocale]);
 
   useEffect(() => {
-    if (isAuthReady) SplashScreen.hideAsync();
-  }, [isAuthReady]);
+    if (isAuthReady && iconsLoaded) SplashScreen.hideAsync();
+  }, [isAuthReady, iconsLoaded]);
 
   useEffect(() => {
     if (user) {
@@ -108,7 +112,7 @@ export default function RootLayout() {
     [headerScreenOptions, t]
   );
 
-  if (!isAuthReady || !isThemeReady || !isI18nReady) return null;
+  if (!isAuthReady || !isThemeReady || !isI18nReady || !iconsLoaded) return null;
 
   return (
     <SafeAreaProvider>
