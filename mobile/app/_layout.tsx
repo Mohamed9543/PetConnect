@@ -4,14 +4,14 @@ import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useMemo } from "react";
-import { View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 import { vars } from "nativewind";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import "react-native-reanimated";
 import "../global.css";
 
 import { ActionSheetHost, ToastHost } from "../src/components/ui";
-import { ErrorBoundary } from "../src/components/ErrorBoundary";
+import { ErrorBoundary as ScreenErrorBoundary } from "../src/components/ErrorBoundary";
 import { useAuthStore } from "../src/store/authStore";
 import { useFavoritesStore } from "../src/store/favoritesStore";
 import { darkColors, lightColors } from "../src/constants/theme";
@@ -20,6 +20,30 @@ import { registerPushToken } from "../src/utils/registerPushToken";
 import { useLocaleStore, useTranslation } from "../src/i18n";
 
 SplashScreen.preventAutoHideAsync();
+
+// expo-router's route-segment error boundary convention: exporting a
+// component named `ErrorBoundary` from a layout file makes the router
+// render it, instead of a blank screen, if the default export below throws
+// during render — including hook errors that happen before the JSX return,
+// which the *inner* <ErrorBoundary> further down in this file cannot catch
+// since it only wraps <Stack>, not the whole RootLayout render.
+export function ErrorBoundary({ error, retry }: { error: Error; retry: () => void }) {
+  return (
+    <View style={{ flex: 1, backgroundColor: "#fff", paddingTop: 60 }}>
+      <ScrollView contentContainerStyle={{ padding: 24 }}>
+        <Text style={{ fontSize: 20, fontWeight: "700", marginBottom: 12 }}>Une erreur est survenue</Text>
+        <Text style={{ fontSize: 14, color: "#444", marginBottom: 20 }}>{error.message}</Text>
+        <Text style={{ fontSize: 12, color: "#888", marginBottom: 20 }}>{error.stack}</Text>
+        <Pressable
+          onPress={retry}
+          style={{ backgroundColor: "#22c55e", padding: 14, borderRadius: 10, alignItems: "center" }}
+        >
+          <Text style={{ color: "#fff", fontWeight: "600" }}>Réessayer</Text>
+        </Pressable>
+      </ScrollView>
+    </View>
+  );
+}
 
 function useHeaderScreenOptions() {
   const colors = useThemeColors();
@@ -120,7 +144,7 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <View style={activeVars} className="flex-1 bg-background">
-        <ErrorBoundary>
+        <ScreenErrorBoundary>
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name="index" />
           <Stack.Screen name="onboarding" />
@@ -150,7 +174,7 @@ export default function RootLayout() {
           <Stack.Screen name="edit-profile" options={screenOptions.editProfile} />
           <Stack.Screen name="+not-found" />
         </Stack>
-        </ErrorBoundary>
+        </ScreenErrorBoundary>
         <ToastHost />
         <ActionSheetHost />
       </View>
