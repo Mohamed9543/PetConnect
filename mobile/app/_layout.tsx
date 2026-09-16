@@ -139,7 +139,27 @@ export default function RootLayout() {
     [headerScreenOptions, t]
   );
 
-  if (!isAuthReady || !isThemeReady || !isI18nReady || !iconsSettled) return null;
+  // Temporary on-screen boot diagnostic (no adb access to this device): a
+  // plain-inline-style view, deliberately NOT using NativeWind/className, so
+  // it renders even if NativeWind's runtime style resolution is the thing
+  // failing. If this text is visible, JS/React are running fine and the
+  // hang is in whichever step never completes. If even this stays blank,
+  // the problem is upstream of React entirely (native crash before JS).
+  if (!isAuthReady || !isThemeReady || !isI18nReady || !iconsSettled) {
+    const pending = [
+      !isAuthReady && "auth",
+      !isThemeReady && "theme",
+      !isI18nReady && "locale",
+      !iconsSettled && "icons",
+    ].filter(Boolean);
+    return (
+      <View style={{ flex: 1, backgroundColor: "#fff", alignItems: "center", justifyContent: "center", padding: 24 }}>
+        <Text style={{ fontSize: 16, color: "#222", textAlign: "center" }}>
+          Démarrage… en attente de : {pending.join(", ")}
+        </Text>
+      </View>
+    );
+  }
 
   return (
     <SafeAreaProvider>
@@ -177,6 +197,14 @@ export default function RootLayout() {
         </ScreenErrorBoundary>
         <ToastHost />
         <ActionSheetHost />
+      </View>
+      {/* Temporary boot diagnostic: confirms the full render tree (incl.
+          NativeWind's `vars()`-driven View above) actually mounted, as
+          opposed to the app being stuck on the "Démarrage…" screen above or
+          crashing silently. Plain inline style, not NativeWind, so it's
+          visible even if NativeWind itself is the thing failing. */}
+      <View pointerEvents="none" style={{ position: "absolute", top: 40, left: 8, backgroundColor: "#22c55e", paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}>
+        <Text style={{ color: "#fff", fontSize: 10 }}>boot-ok</Text>
       </View>
       <StatusBar style={resolvedTheme === "dark" ? "light" : "dark"} />
     </SafeAreaProvider>
