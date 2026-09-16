@@ -2,8 +2,13 @@ const asyncHandler = require("express-async-handler");
 const User = require("../models/User");
 const { uploadBuffer } = require("../utils/uploadToCloudinary");
 
+// Public-safe profile fields only — never phone/email/pushToken/role/
+// blockedUsers, which the full document otherwise carries.
+const PUBLIC_PROFILE_FIELDS =
+  "firstName lastName avatar rating role verified organizationName organizationDescription createdAt";
+
 const getUserById = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.params.id);
+  const user = await User.findById(req.params.id).select(PUBLIC_PROFILE_FIELDS);
   if (!user) {
     res.status(404);
     throw new Error("Utilisateur introuvable");
@@ -44,6 +49,12 @@ const toggleBlockUser = asyncHandler(async (req, res) => {
   if (targetId === req.user._id.toString()) {
     res.status(400);
     throw new Error("Vous ne pouvez pas vous bloquer vous-même");
+  }
+
+  const targetExists = await User.exists({ _id: targetId });
+  if (!targetExists) {
+    res.status(404);
+    throw new Error("Utilisateur introuvable");
   }
 
   const user = await User.findById(req.user._id);
