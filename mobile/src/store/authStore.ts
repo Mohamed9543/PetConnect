@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { api } from "../api/client";
-import { secureStorage } from "../utils/secureStorage";
+import { secureStorage, withTimeout } from "../utils/secureStorage";
 import type { User } from "../types";
 
 interface AuthState {
@@ -28,7 +28,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     // the app stuck behind the splash screen forever.
     try {
       const token = await secureStorage.getItem("token");
-      const userJson = await AsyncStorage.getItem("user");
+      const userJson = await withTimeout(AsyncStorage.getItem("user"), 5000, null);
       if (token && userJson) {
         set({ user: JSON.parse(userJson) });
       }

@@ -2,6 +2,7 @@ import { Appearance } from "react-native";
 import { create } from "zustand";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { darkColors, lightColors, colors as mutableColors } from "../constants/theme";
+import { withTimeout } from "../utils/secureStorage";
 
 export type ThemeMode = "light" | "dark" | "system";
 type ResolvedMode = "light" | "dark";
@@ -27,7 +28,7 @@ export const useThemeStore = create<ThemeState>((set, get) => ({
 
   restore: async () => {
     try {
-      const saved = await AsyncStorage.getItem(STORAGE_KEY);
+      const saved = await withTimeout(AsyncStorage.getItem(STORAGE_KEY), 5000, null);
       if (saved === "light" || saved === "dark" || saved === "system") {
         set({ mode: saved });
       }

@@ -3,6 +3,7 @@ import { I18nManager } from "react-native";
 import * as Localization from "expo-localization";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { create } from "zustand";
+import { withTimeout } from "../utils/secureStorage";
 import fr from "./locales/fr";
 import en from "./locales/en";
 import ar from "./locales/ar";
@@ -49,7 +50,7 @@ export const useLocaleStore = create<LocaleState>((set, get) => ({
     // Same rule as authStore/themeStore: the splash screen waits on
     // isReady, so a storage read failure here must not leave it stuck.
     try {
-      const saved = (await AsyncStorage.getItem(STORAGE_KEY)) as Locale | null;
+      const saved = (await withTimeout(AsyncStorage.getItem(STORAGE_KEY), 5000, null)) as Locale | null;
       const locale = saved && dictionaries[saved] ? saved : detectDefaultLocale();
       const rtl = isRTL(locale);
       // Align native layout direction on cold start, before any UI renders,
