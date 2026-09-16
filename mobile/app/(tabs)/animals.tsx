@@ -203,6 +203,10 @@ export default function Animals() {
         columnWrapperStyle={{ justifyContent: "space-between" }}
         contentContainerStyle={{ padding: 16, paddingBottom: 32, flexGrow: 1 }}
         renderItem={({ item }) => <AnimalCard animal={item} />}
+        removeClippedSubviews
+        maxToRenderPerBatch={8}
+        windowSize={7}
+        initialNumToRender={6}
         ListHeaderComponent={isLoading ? <SkeletonAnimalGrid /> : null}
         ListEmptyComponent={
           isLoading ? null : (

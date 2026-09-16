@@ -3,7 +3,17 @@ const cloudinary = require("../config/cloudinary");
 function uploadBuffer(buffer, folder) {
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
-      { folder, resource_type: "image" },
+      {
+        folder,
+        resource_type: "image",
+        // Phone camera originals can be 4000px+; nothing in the app needs
+        // more than this for a card thumbnail or a full-screen detail view,
+        // and auto quality/format shrinks payload size further per client.
+        transformation: [
+          { width: 1600, height: 1600, crop: "limit" },
+          { quality: "auto", fetch_format: "auto" },
+        ],
+      },
       (error, result) => {
         if (error) return reject(error);
         resolve(result.secure_url);

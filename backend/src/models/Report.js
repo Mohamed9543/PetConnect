@@ -42,6 +42,8 @@ const reportSchema = new mongoose.Schema(
 );
 
 reportSchema.index({ "location.latitude": 1, "location.longitude": 1 });
+reportSchema.index({ user: 1 });
+reportSchema.index({ status: 1, createdAt: -1 });
 
 reportSchema.statics.STATUSES = REPORT_STATUSES;
 

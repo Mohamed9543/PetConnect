@@ -5,6 +5,11 @@ const { generateReference } = require("../utils/reference");
 const { distanceKm, toPublicReport } = require("../utils/geo");
 const { findMatches } = require("../utils/matching");
 const { notifyUser } = require("../utils/notify");
+const { whitelist } = require("../utils/sanitize");
+
+const REPORT_TYPES = ["lost", "found"];
+const ANIMAL_TYPES = ["dog", "cat", "other"];
+const MAX_RESULTS = 200;
 
 function applyDistanceFilter(reports, query) {
   const { lat, lng, radiusKm } = query;
@@ -20,11 +25,14 @@ function applyDistanceFilter(reports, query) {
 const getReports = asyncHandler(async (req, res) => {
   const { type, animalType, status } = req.query;
   const filter = {};
-  if (type) filter.type = type;
-  if (animalType) filter.animalType = animalType;
-  filter.status = status || { $in: ["active", "in_progress"] };
+  if (type) filter.type = whitelist(type, REPORT_TYPES);
+  if (animalType) filter.animalType = whitelist(animalType, ANIMAL_TYPES);
+  filter.status = whitelist(status, Report.STATUSES) || { $in: ["active", "in_progress"] };
 
-  const reports = await Report.find(filter).populate("user", "firstName lastName avatar phone").sort({ createdAt: -1 });
+  const reports = await Report.find(filter)
+    .populate("user", "firstName lastName avatar phone")
+    .sort({ createdAt: -1 })
+    .limit(MAX_RESULTS);
   const filtered = applyDistanceFilter(reports, req.query);
   res.json(filtered.map((report) => toPublicReport(report, req.user?._id)));
 });
@@ -32,7 +40,8 @@ const getReports = asyncHandler(async (req, res) => {
 const getLostReports = asyncHandler(async (req, res) => {
   const reports = await Report.find({ type: "lost", status: { $in: ["active", "in_progress"] } })
     .populate("user", "firstName lastName avatar phone")
-    .sort({ createdAt: -1 });
+    .sort({ createdAt: -1 })
+    .limit(MAX_RESULTS);
   const filtered = applyDistanceFilter(reports, req.query);
   res.json(filtered.map((report) => toPublicReport(report, req.user?._id)));
 });
@@ -40,7 +49,8 @@ const getLostReports = asyncHandler(async (req, res) => {
 const getFoundReports = asyncHandler(async (req, res) => {
   const reports = await Report.find({ type: "found", status: { $in: ["active", "in_progress"] } })
     .populate("user", "firstName lastName avatar phone")
-    .sort({ createdAt: -1 });
+    .sort({ createdAt: -1 })
+    .limit(MAX_RESULTS);
   const filtered = applyDistanceFilter(reports, req.query);
   res.json(filtered.map((report) => toPublicReport(report, req.user?._id)));
 });

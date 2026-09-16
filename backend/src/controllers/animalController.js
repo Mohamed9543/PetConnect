@@ -2,6 +2,13 @@ const asyncHandler = require("express-async-handler");
 const Animal = require("../models/Animal");
 const { uploadImages } = require("../utils/uploadToCloudinary");
 const { distanceKm, fuzzCoordinates } = require("../utils/geo");
+const { escapeRegex, whitelist } = require("../utils/sanitize");
+
+const TYPES = ["dog", "cat", "other"];
+const GENDERS = ["male", "female"];
+const AGE_CATEGORIES = ["baby", "young", "adult"];
+const STATUSES = ["available", "pending", "adopted"];
+const MAX_RESULTS = 200;
 
 function toPublicAnimal(animalDoc) {
   const animal = animalDoc.toObject ? animalDoc.toObject() : { ...animalDoc };
@@ -14,21 +21,35 @@ function toPublicAnimal(animalDoc) {
 const getAnimals = asyncHandler(async (req, res) => {
   const { type, gender, ageCategory, breed, city, status, lat, lng, radiusKm } = req.query;
   const filter = {};
-  if (type) filter.type = type;
-  if (gender) filter.gender = gender;
-  if (ageCategory) filter.ageCategory = ageCategory;
-  if (breed) filter.breed = { $regex: breed, $options: "i" };
-  if (city) filter["location.city"] = { $regex: `^${city}$`, $options: "i" };
-  filter.status = status || "available";
+  if (type) filter.type = whitelist(type, TYPES);
+  if (gender) filter.gender = whitelist(gender, GENDERS);
+  if (ageCategory) filter.ageCategory = whitelist(ageCategory, AGE_CATEGORIES);
+  if (breed) filter.breed = { $regex: escapeRegex(breed), $options: "i" };
+  if (city) filter["location.city"] = { $regex: `^${escapeRegex(city)}$`, $options: "i" };
+  filter.status = whitelist(status, STATUSES) || "available";
 
-  let animals = await Animal.find(filter)
-    .populate("owner", "firstName lastName avatar rating role verified")
-    .sort({ createdAt: -1 });
-
+  // Push a coarse bounding box down to MongoDB before doing the precise
+  // haversine filter in JS, so a radius search doesn't have to pull every
+  // animal in the database over the wire.
+  let radius;
   if (lat && lng && radiusKm) {
     const originLat = Number(lat);
     const originLng = Number(lng);
-    const radius = Number(radiusKm);
+    radius = Number(radiusKm);
+    const latDelta = radius / 111;
+    const lngDelta = radius / (111 * Math.cos((originLat * Math.PI) / 180) || 1);
+    filter["location.latitude"] = { $gte: originLat - latDelta, $lte: originLat + latDelta };
+    filter["location.longitude"] = { $gte: originLng - lngDelta, $lte: originLng + lngDelta };
+  }
+
+  let animals = await Animal.find(filter)
+    .populate("owner", "firstName lastName avatar rating role verified")
+    .sort({ createdAt: -1 })
+    .limit(MAX_RESULTS);
+
+  if (radius !== undefined) {
+    const originLat = Number(lat);
+    const originLng = Number(lng);
     animals = animals.filter((animal) => {
       if (!animal.location?.latitude || !animal.location?.longitude) return false;
       return distanceKm(originLat, originLng, animal.location.latitude, animal.location.longitude) <= radius;

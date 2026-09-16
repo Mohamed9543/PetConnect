@@ -10,16 +10,16 @@ const getConversations = asyncHandler(async (req, res) => {
     .populate("animal", "name images")
     .sort({ lastMessageAt: -1 });
 
-  const withUnread = await Promise.all(
-    conversations.map(async (conversation) => {
-      const unreadCount = await Message.countDocuments({
-        conversation: conversation._id,
-        receiver: req.user._id,
-        read: false,
-      });
-      return { ...conversation.toObject(), unreadCount };
-    })
-  );
+  const unreadCounts = await Message.aggregate([
+    { $match: { conversation: { $in: conversations.map((c) => c._id) }, receiver: req.user._id, read: false } },
+    { $group: { _id: "$conversation", count: { $sum: 1 } } },
+  ]);
+  const unreadByConversation = new Map(unreadCounts.map((c) => [c._id.toString(), c.count]));
+
+  const withUnread = conversations.map((conversation) => ({
+    ...conversation.toObject(),
+    unreadCount: unreadByConversation.get(conversation._id.toString()) || 0,
+  }));
 
   res.json(withUnread);
 });
@@ -32,11 +32,24 @@ const getConversationInfo = asyncHandler(async (req, res) => {
     res.status(404);
     throw new Error("Conversation introuvable");
   }
+  if (!conversation.participants.some((p) => p._id.toString() === req.user._id.toString())) {
+    res.status(403);
+    throw new Error("Accès non autorisé à cette conversation");
+  }
   res.json(conversation);
 });
 
 const getMessages = asyncHandler(async (req, res) => {
   const { conversationId } = req.params;
+  const conversation = await Conversation.findById(conversationId).select("participants");
+  if (!conversation) {
+    res.status(404);
+    throw new Error("Conversation introuvable");
+  }
+  if (!conversation.participants.some((id) => id.toString() === req.user._id.toString())) {
+    res.status(403);
+    throw new Error("Accès non autorisé à cette conversation");
+  }
   const messages = await Message.find({ conversation: conversationId }).sort({ createdAt: 1 });
   await Message.updateMany(
     { conversation: conversationId, receiver: req.user._id, read: false },

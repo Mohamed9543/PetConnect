@@ -2,7 +2,7 @@ const express = require("express");
 const upload = require("../middleware/upload");
 const validate = require("../middleware/validate");
 const { protect } = require("../middleware/auth");
-const { createReportValidator } = require("../validators/reportValidators");
+const { createReportValidator, updateReportValidator } = require("../validators/reportValidators");
 const {
   getReports,
   getLostReports,
@@ -24,7 +24,7 @@ router.get("/mine", protect, getMyReports);
 router.get("/:id", getReportById);
 router.get("/:id/matches", getReportMatches);
 router.post("/", protect, upload.array("images", 6), createReportValidator, validate, createReport);
-router.put("/:id", protect, updateReport);
+router.put("/:id", protect, updateReportValidator, validate, updateReport);
 router.delete("/:id", protect, deleteReport);
 
 module.exports = router;

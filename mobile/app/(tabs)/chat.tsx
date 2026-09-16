@@ -83,6 +83,8 @@ export default function Chat() {
       <FlatList
         data={isLoading ? [] : visible}
         keyExtractor={(item) => item._id}
+        removeClippedSubviews
+        windowSize={7}
         renderItem={({ item }) => {
           const other = item.participants.find((p) => p._id !== user?._id) ?? item.participants[0];
           const hasUnread = item.unreadCount > 0;

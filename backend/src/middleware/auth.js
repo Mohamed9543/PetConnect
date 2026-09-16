@@ -10,7 +10,13 @@ const protect = asyncHandler(async (req, res, next) => {
   }
 
   const token = header.split(" ")[1];
-  const decoded = jwt.verify(token, process.env.JWT_SECRET);
+  let decoded;
+  try {
+    decoded = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ["HS256"] });
+  } catch (error) {
+    res.status(401);
+    throw new Error("Non autorisé, token invalide");
+  }
   const user = await User.findById(decoded.id);
   if (!user) {
     res.status(401);

@@ -28,5 +28,7 @@ const animalSchema = new mongoose.Schema(
 );
 
 animalSchema.index({ "location.latitude": 1, "location.longitude": 1 });
+animalSchema.index({ owner: 1 });
+animalSchema.index({ status: 1, createdAt: -1 });
 
 module.exports = mongoose.model("Animal", animalSchema);

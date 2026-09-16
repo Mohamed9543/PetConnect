@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Pressable, Text, View } from "react-native";
 import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
@@ -17,7 +18,7 @@ interface AnimalCardProps {
   hideFavorite?: boolean;
 }
 
-export function AnimalCard({ animal, hideFavorite = false }: AnimalCardProps) {
+export const AnimalCard = memo(function AnimalCard({ animal, hideFavorite = false }: AnimalCardProps) {
   const colors = useThemeColors();
   const { t } = useTranslation();
   const isFavorite = useFavoritesStore((state) => state.isFavorite(animal._id));
@@ -93,4 +94,4 @@ export function AnimalCard({ animal, hideFavorite = false }: AnimalCardProps) {
       </View>
     </Pressable>
   );
-}
+});

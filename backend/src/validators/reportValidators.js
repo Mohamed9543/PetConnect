@@ -10,4 +10,11 @@ const createReportValidator = [
   body("description").optional({ checkFalsy: true }).isLength({ max: 2000 }).withMessage("La description est trop longue."),
 ];
 
-module.exports = { createReportValidator };
+const updateReportValidator = [
+  body("animalType").optional({ checkFalsy: true }).isIn(["dog", "cat", "other"]).withMessage("Type d'animal invalide."),
+  body("contact").optional({ checkFalsy: true }).trim().notEmpty().withMessage("Un contact est requis pour être recontacté."),
+  body("description").optional({ checkFalsy: true }).isLength({ max: 2000 }).withMessage("La description est trop longue."),
+  body("status").optional({ checkFalsy: true }).isIn(["active", "in_progress", "found", "resolved"]).withMessage("Statut invalide."),
+];
+
+module.exports = { createReportValidator, updateReportValidator };

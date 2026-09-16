@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const compression = require("compression");
 const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
 const { notFound, errorHandler } = require("./middleware/errorHandler");
@@ -21,6 +22,7 @@ const app = express();
 
 app.set("trust proxy", 1);
 app.use(helmet());
+app.use(compression());
 app.use(cors({ origin: process.env.CLIENT_ORIGIN || "*" }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

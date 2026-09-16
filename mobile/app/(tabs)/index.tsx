@@ -90,6 +90,10 @@ export default function Home() {
         keyExtractor={(item) => item._id}
         columnWrapperStyle={{ justifyContent: "space-between" }}
         contentContainerStyle={{ padding: 16, paddingBottom: 32, flexGrow: 1 }}
+        removeClippedSubviews
+        maxToRenderPerBatch={8}
+        windowSize={7}
+        initialNumToRender={6}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}

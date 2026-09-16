@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { api } from "../api/client";
+import { secureStorage } from "../utils/secureStorage";
 import type { User } from "../types";
 
 interface AuthState {
@@ -21,7 +22,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   isReady: false,
 
   restore: async () => {
-    const token = await AsyncStorage.getItem("token");
+    const token = await secureStorage.getItem("token");
     const userJson = await AsyncStorage.getItem("user");
     if (token && userJson) {
       set({ user: JSON.parse(userJson) });
@@ -33,7 +34,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ isLoading: true });
     try {
       const { data } = await api.post("/auth/login", { email, password });
-      await AsyncStorage.setItem("token", data.token);
+      await secureStorage.setItem("token", data.token);
       await AsyncStorage.setItem("user", JSON.stringify(data));
       set({ user: data });
     } finally {
@@ -45,7 +46,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ isLoading: true });
     try {
       const { data } = await api.post("/auth/google", { idToken });
-      await AsyncStorage.setItem("token", data.token);
+      await secureStorage.setItem("token", data.token);
       await AsyncStorage.setItem("user", JSON.stringify(data));
       set({ user: data });
     } finally {
@@ -57,7 +58,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ isLoading: true });
     try {
       const { data } = await api.post("/auth/register", payload);
-      await AsyncStorage.setItem("token", data.token);
+      await secureStorage.setItem("token", data.token);
       await AsyncStorage.setItem("user", JSON.stringify(data));
       set({ user: data });
     } finally {
@@ -66,7 +67,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   logout: async () => {
-    await AsyncStorage.multiRemove(["token", "user"]);
+    await secureStorage.removeItem("token");
+    await AsyncStorage.removeItem("user");
     set({ user: null });
   },
 
