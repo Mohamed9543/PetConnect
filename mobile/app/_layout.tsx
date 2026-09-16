@@ -3,7 +3,7 @@ import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { vars } from "nativewind";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -70,7 +70,15 @@ export default function RootLayout() {
   const [iconsLoaded, iconsError] = useFonts(Ionicons.font);
   // A font-loading error still means "done trying" — the icons just won't
   // render — so it must unblock the splash screen the same as success.
-  const iconsSettled = iconsLoaded || !!iconsError;
+  // Same belt-and-suspenders reasoning as the storage reads: if the native
+  // font-loading call never settles at all on some device, nothing here
+  // should wait on it forever.
+  const [iconsTimedOut, setIconsTimedOut] = useState(false);
+  useEffect(() => {
+    const timer = setTimeout(() => setIconsTimedOut(true), 5000);
+    return () => clearTimeout(timer);
+  }, []);
+  const iconsSettled = iconsLoaded || !!iconsError || iconsTimedOut;
 
   const isAuthReady = useAuthStore((state) => state.isReady);
   const restoreAuth = useAuthStore((state) => state.restore);
@@ -153,8 +161,8 @@ export default function RootLayout() {
       !iconsSettled && "icons",
     ].filter(Boolean);
     return (
-      <View style={{ flex: 1, backgroundColor: "#fff", alignItems: "center", justifyContent: "center", padding: 24 }}>
-        <Text style={{ fontSize: 16, color: "#222", textAlign: "center" }}>
+      <View style={{ flex: 1, backgroundColor: "#facc15", alignItems: "center", justifyContent: "center", padding: 24 }}>
+        <Text style={{ fontSize: 16, color: "#000", textAlign: "center", fontWeight: "700" }}>
           Démarrage… en attente de : {pending.join(", ")}
         </Text>
       </View>
