@@ -25,6 +25,12 @@ const userSchema = new mongoose.Schema(
 
     blockedUsers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
 
+    // Password reset flow: a hashed 6-digit OTP (never stored/logged in
+    // plaintext), short-lived, and cleared after use or expiry.
+    passwordResetOtpHash: { type: String, select: false },
+    passwordResetExpires: { type: Date, select: false },
+    passwordResetAttempts: { type: Number, default: 0, select: false },
+
     notificationPreferences: {
       messages: { type: Boolean, default: true },
       matches: { type: Boolean, default: true },

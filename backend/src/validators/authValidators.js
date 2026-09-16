@@ -19,4 +19,24 @@ const loginValidator = [
   body("password").notEmpty().withMessage("Le mot de passe est requis."),
 ];
 
-module.exports = { registerValidator, loginValidator };
+const forgotPasswordValidator = [
+  body("email").trim().isEmail().withMessage("L'adresse email n'est pas valide.").normalizeEmail(),
+];
+
+const verifyResetOtpValidator = [
+  body("email").trim().isEmail().withMessage("L'adresse email n'est pas valide.").normalizeEmail(),
+  body("otp").trim().isLength({ min: 6, max: 6 }).isNumeric().withMessage("Le code doit contenir 6 chiffres."),
+];
+
+const resetPasswordValidator = [
+  body("resetToken").notEmpty().withMessage("Jeton de réinitialisation manquant."),
+  body("newPassword").isLength({ min: 6 }).withMessage("Le mot de passe doit contenir au moins 6 caractères."),
+];
+
+module.exports = {
+  registerValidator,
+  loginValidator,
+  forgotPasswordValidator,
+  verifyResetOtpValidator,
+  resetPasswordValidator,
+};

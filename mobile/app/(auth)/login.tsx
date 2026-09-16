@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { KeyboardAvoidingView, Platform, ScrollView, Text, View } from "react-native";
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from "react-native";
 import { Link, router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as WebBrowser from "expo-web-browser";
@@ -110,9 +110,14 @@ export default function Login() {
             error={errors.password}
           />
 
-          <Text className="text-right text-ink-secondary text-[13px] mb-6 -mt-2">
-            {t("auth.forgotPassword")}
-          </Text>
+          <Pressable
+            onPress={() => router.push("/(auth)/forgot-password")}
+            hitSlop={8}
+            accessibilityRole="button"
+            className="items-end mb-6 -mt-2"
+          >
+            <Text className="text-ink-secondary text-[13px]">{t("auth.forgotPassword")}</Text>
+          </Pressable>
 
           <Button title={t("auth.login")} onPress={onSubmit} loading={isLoading} />
 
