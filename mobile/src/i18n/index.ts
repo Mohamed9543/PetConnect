@@ -46,16 +46,24 @@ export const useLocaleStore = create<LocaleState>((set, get) => ({
   pendingRestart: false,
 
   restore: async () => {
-    const saved = (await AsyncStorage.getItem(STORAGE_KEY)) as Locale | null;
-    const locale = saved && dictionaries[saved] ? saved : detectDefaultLocale();
-    const rtl = isRTL(locale);
-    // Align native layout direction on cold start, before any UI renders,
-    // so RTL locales (ar/ary) don't briefly flash in LTR.
-    if (I18nManager.isRTL !== rtl) {
-      I18nManager.allowRTL(rtl);
-      I18nManager.forceRTL(rtl);
+    // Same rule as authStore/themeStore: the splash screen waits on
+    // isReady, so a storage read failure here must not leave it stuck.
+    try {
+      const saved = (await AsyncStorage.getItem(STORAGE_KEY)) as Locale | null;
+      const locale = saved && dictionaries[saved] ? saved : detectDefaultLocale();
+      const rtl = isRTL(locale);
+      // Align native layout direction on cold start, before any UI renders,
+      // so RTL locales (ar/ary) don't briefly flash in LTR.
+      if (I18nManager.isRTL !== rtl) {
+        I18nManager.allowRTL(rtl);
+        I18nManager.forceRTL(rtl);
+      }
+      set({ locale });
+    } catch (error) {
+      console.error("Locale restore failed:", error);
+    } finally {
+      set({ isReady: true });
     }
-    set({ locale, isReady: true });
   },
 
   setLocale: async (locale) => {

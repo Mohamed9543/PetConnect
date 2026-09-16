@@ -22,12 +22,21 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   isReady: false,
 
   restore: async () => {
-    const token = await secureStorage.getItem("token");
-    const userJson = await AsyncStorage.getItem("user");
-    if (token && userJson) {
-      set({ user: JSON.parse(userJson) });
+    // The splash screen stays up until isReady flips true (see
+    // app/_layout.tsx), so any failure here — a corrupt stored value, a
+    // SecureStore/Keystore hiccup on a particular device — must never leave
+    // the app stuck behind the splash screen forever.
+    try {
+      const token = await secureStorage.getItem("token");
+      const userJson = await AsyncStorage.getItem("user");
+      if (token && userJson) {
+        set({ user: JSON.parse(userJson) });
+      }
+    } catch (error) {
+      console.error("Auth restore failed:", error);
+    } finally {
+      set({ isReady: true });
     }
-    set({ isReady: true });
   },
 
   login: async (email, password) => {

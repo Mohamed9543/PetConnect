@@ -43,7 +43,10 @@ function useHeaderScreenOptions() {
 }
 
 export default function RootLayout() {
-  const [iconsLoaded] = useFonts(Ionicons.font);
+  const [iconsLoaded, iconsError] = useFonts(Ionicons.font);
+  // A font-loading error still means "done trying" — the icons just won't
+  // render — so it must unblock the splash screen the same as success.
+  const iconsSettled = iconsLoaded || !!iconsError;
 
   const isAuthReady = useAuthStore((state) => state.isReady);
   const restoreAuth = useAuthStore((state) => state.restore);
@@ -66,8 +69,8 @@ export default function RootLayout() {
   }, [restoreAuth, restoreTheme, restoreLocale]);
 
   useEffect(() => {
-    if (isAuthReady && iconsLoaded) SplashScreen.hideAsync();
-  }, [isAuthReady, iconsLoaded]);
+    if (isAuthReady && isThemeReady && isI18nReady && iconsSettled) SplashScreen.hideAsync();
+  }, [isAuthReady, isThemeReady, isI18nReady, iconsSettled]);
 
   useEffect(() => {
     if (user) {
@@ -112,7 +115,7 @@ export default function RootLayout() {
     [headerScreenOptions, t]
   );
 
-  if (!isAuthReady || !isThemeReady || !isI18nReady || !iconsLoaded) return null;
+  if (!isAuthReady || !isThemeReady || !isI18nReady || !iconsSettled) return null;
 
   return (
     <SafeAreaProvider>
