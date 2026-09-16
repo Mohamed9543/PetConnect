@@ -1,5 +1,7 @@
 import axios from "axios";
+import { router } from "expo-router";
 import { secureStorage } from "../utils/secureStorage";
+import { useAuthStore } from "../store/authStore";
 
 // Replace with your machine's LAN IP when testing on a physical device,
 // e.g. "http://192.168.1.10:5000/api"
@@ -17,3 +19,21 @@ api.interceptors.request.use(async (config) => {
   }
   return config;
 });
+
+// A 401 from any *protected* endpoint means the stored token is expired,
+// revoked, or was signed with an old JWT_SECRET — without this, every
+// screen just keeps re-sending the dead token and failing forever, with no
+// way back to the login screen short of manually clearing app data. Login
+// itself also returns 401 for a wrong password, which is a normal, expected
+// rejection (not a dead session) and must not trigger this.
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const isAuthEndpoint = error.config?.url?.startsWith("/auth/");
+    if (error.response?.status === 401 && !isAuthEndpoint) {
+      await useAuthStore.getState().logout();
+      router.replace("/(auth)/login");
+    }
+    return Promise.reject(error);
+  }
+);
