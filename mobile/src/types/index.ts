@@ -17,7 +17,38 @@ export interface User {
   organizationName?: string;
   organizationDescription?: string;
   verified?: boolean;
+  isBlocked?: boolean;
+  createdAt?: string;
   token?: string;
+}
+
+export interface AdminStats {
+  users: number;
+  animals: number;
+  adoptedAnimals: number;
+  openReports: number;
+  foundReports: number;
+  associations: number;
+  pendingFlags: number;
+  adoptionRate: number;
+  foundRate: number;
+}
+
+export interface Flag {
+  _id: string;
+  reporter: User;
+  targetType: "user" | "animal" | "report" | "message";
+  targetId: string;
+  reason: string;
+  status: "pending" | "reviewed" | "dismissed";
+  createdAt: string;
+}
+
+export interface Paginated<T> {
+  data: T[];
+  total: number;
+  page: number;
+  pages: number;
 }
 
 export interface Animal {

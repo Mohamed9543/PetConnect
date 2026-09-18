@@ -178,6 +178,7 @@ export default function RootLayout() {
           <Stack.Screen name="onboarding" />
           <Stack.Screen name="(auth)" />
           <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="admin" />
           <Stack.Screen name="animal/[id]" options={screenOptions.animalDetails} />
           <Stack.Screen name="animal/edit/[id]" options={screenOptions.animalEdit} />
           <Stack.Screen name="chat/[id]" options={screenOptions.chatConversation} />

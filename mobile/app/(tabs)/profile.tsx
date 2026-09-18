@@ -17,6 +17,14 @@ function useMenuItems() {
     { icon: "heart-outline", label: t("profile.myFavorites"), route: "/favorites" },
   ] as const;
 
+  const adminItems = [
+    { icon: "speedometer-outline", label: t("admin.dashboard"), route: "/admin" },
+    { icon: "people-outline", label: t("admin.users"), route: "/admin/users" },
+    { icon: "paw-outline", label: t("admin.animals"), route: "/admin/animals" },
+    { icon: "flag-outline", label: t("admin.reports"), route: "/admin/reports" },
+    { icon: "alert-circle-outline", label: t("admin.flags"), route: "/admin/flags" },
+  ] as const;
+
   const settingsItems = [
     { icon: "person-outline", label: t("profile.editProfileMenu"), route: "/edit-profile" },
     { icon: "sparkles-outline", label: t("profile.assistantMenu"), route: "/assistant" },
@@ -28,7 +36,7 @@ function useMenuItems() {
     { icon: "help-circle-outline", label: t("help.title"), route: "/help" },
   ] as const;
 
-  return { activityItems, settingsItems };
+  return { activityItems, adminItems, settingsItems };
 }
 
 function MenuGroup({ items }: { items: readonly { icon: any; label: string; route: string | null }[] }) {
@@ -56,10 +64,11 @@ function MenuGroup({ items }: { items: readonly { icon: any; label: string; rout
 export default function Profile() {
   const colors = useThemeColors();
   const { t } = useTranslation();
-  const { activityItems, settingsItems } = useMenuItems();
+  const { activityItems, adminItems, settingsItems } = useMenuItems();
   const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
   const isAssociation = user?.role === "association";
+  const isAdmin = user?.role === "admin";
 
   const onLogout = async () => {
     const confirmed = await confirmAsync(
@@ -113,6 +122,14 @@ export default function Profile() {
       )}
 
       <MenuGroup items={activityItems} />
+      {isAdmin && (
+        <>
+          <Text className="text-ink-muted text-[12px] font-semibold mt-5 mx-4 uppercase">
+            {t("admin.sectionTitle")}
+          </Text>
+          <MenuGroup items={adminItems} />
+        </>
+      )}
       <MenuGroup items={settingsItems} />
 
       <Pressable
